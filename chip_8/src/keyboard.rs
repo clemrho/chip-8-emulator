@@ -1,4 +1,6 @@
-pub struct keyboard{}
+pub struct keyboard{
+    input_char : char,
+}
 
 impl keyboard {
     /*  transfer modern keyboard map below:
@@ -13,8 +15,8 @@ impl keyboard {
             A   0   B   F
     clicking all other keys will cause it to enter '0'.
      */
-    pub fn char_injection(input: char) -> char {
-        let output: char = match input {
+    pub fn char_injection() -> char {
+        let output: char = match input_char {
             '1' => '1',
             '2' => '2',
             '3' => '3',
