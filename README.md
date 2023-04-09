@@ -1,32 +1,47 @@
 # Chip-8-Emulator
 *A simple chip-8 emulator written by Rust*
 
-**UIUC CS128 Honor Final Project**
+*--UIUC CS128 Honor Final Project*
 
 ## Basic information
 #### Group name: 
 ILoveRust123
 #### Group member: 
-Yanze Lu (yanzelu2), Jiayi Yan (jiayi22)
+Yanze Lu : yanzelu2@illinois.edu
+
+Jiayi Yan :  jiayi22@illinois.edu
 #### Description: 
 Chip-8 was a very simple programming language used for many of the 8-bit games from the 70s. This project is a simple implement of the chip-8 emulator. May include memory allocation, game loop, handling graphics. This is a very classic and charming project.
 ## Technical Overview: 
-#### Project structure:
-Utilities classes: keypad translator, timer, html renderer...
+### Project structure:
 
-Rom-loading class : loads the contents of a ROM file. 
+The overall philosophy of our project is **five main tasks: IFDER**
 
-Fonts-loading class : convey the pixel character to the corresponding graphic images.
+*Input -> Fetch -> Decode -> Execute -> Render*
 
+#### 0. Most critical classes
+The Main Loop : An infinite game loop (aka.the driver class) setup the callback, call the chip-8 class member functions, finally update and clear the display.
+CPU classes : Store all the variables and methods in CPU during the whole process.
+#### 1. Input 
+Utilities classes: keypad translator, (timer). 
+[might be implemented] Rom-loading class : loads the contents of a file. 
+
+#### 2. Fetch
+In CPU class : Fetching the codes on 4-bits basis from the memory.
 Random Number Generator : places a random number into a register.
 
-The Main Loop : Game Loop (aka.the driver class) setup the callback, call the chip-8 class member functions, finally update and clear the display.
+#### 3. Decode and Execution
+In CPU class : Using a considerable amount of `matching pattern`, decode and exec every command.
 
-- Checkpoint 1: Rom-loading class finished, (including keypad translator).
-- Checkpoint 2: One "chip-8" class, Rom-loading class, Fonts-loading class, Random Number Generator.
+#### 4.Render
+Fonts-loading class : convey the pixel character to the corresponding graphic images.
+May use WASM to interact Rust with `Javascript`.
+
+- Checkpoint 1: CPU class structure finished, Render finished.
+- Checkpoint 2: Main loop, Rom-loading class, Fonts-loading class, Random Number Generator, Fetch, finish all decode patterns.
 - Final: All finished.
-#### Possible Challenges:
- working with a UI in Rust; Parallelism & Multithreading ;time limit
+### Possible Challenges:
+ working with a UI in Rust; decode every pattern correctly, time limit.
 ## References: 
 *Guide to making a CHIP-8 emulator*
 
