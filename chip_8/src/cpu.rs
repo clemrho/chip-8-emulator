@@ -121,15 +121,17 @@ impl CPU {
             (5,_,_,0) => self.f_5xy0(X,Y),
             (6,_,_,_) => self.f_6xnn(X,NN),
             (7, _, _, _) => self.f_7xnn(X, NN),
-            (8, _, _, 0) => self.f_8xy0(X, Y),
-            (8, _, _, 1) => self.f_8xy1(X, Y),
-            (8, _, _, 2) => self.f_8xy2(X, Y),
-            (8, _, _, 3) => self.f_8xy3(X, Y),
-            (8, _, _, 4) => self.f_8xy4(X, Y),
-            (8, _, _, 5) => self.f_8xy5(X, Y),
-            (8, _, _, 6) => self.f_8x06(X),
-            (8, _, _, 7) => self.f_8xy7(X, Y),
-            (8, _, _, 0xE) => self.f_8x0e(X),
+            (8,_,_, _ ) => match (d2,d3,d4) {
+                ( _, _, 0) => self.f_8xy0(X, Y),
+                ( _, _, 1) => self.f_8xy1(X, Y),
+                ( _, _, 2) => self.f_8xy2(X, Y),
+                ( _, _, 3) => self.f_8xy3(X, Y),
+                ( _, _, 4) => self.f_8xy4(X, Y),
+                ( _, _, 5) => self.f_8xy5(X, Y),
+                ( _, _, 6) => self.f_8x06(X),
+                ( _, _, 7) => self.f_8xy7(X, Y),
+                ( _, _, 0xE) => self.f_8x0e(X),
+            },
             (9, _, _, 0) => self.f_9xy0(X, Y),
             (0xA, _, _, _) => self.f_annn(NNN),
             (0xB, _, _, _) => self.f_bnnn(NNN),
@@ -137,16 +139,17 @@ impl CPU {
             (0xD, _, _, _) => self.f_dxyn(X, Y, N),
             (0xE, _, 9, 0xE) => self.f_ex9e(X),
             (0xE, _, 0xA, 1) => self.f_exa1(X),
-            (0x0f, _, 0, 7) => self.f_fx07(X),
-            (0x0f, _, 0, 0xA) => self.f_fx0a(X),
-            (0x0f, _, 1, 5) => self.f_fx15(X),
-            (0x0f, _, 1, 8) => self.f_fx18(X),
-            (0x0f, _, 1, 0xE) => self.f_fx1e(X),
-            (0x0f, _, 2, 9) => self.f_fx29(X),
-            (0x0f, _, 3, 3) => self.f_fx33(X),
-            (0x0f, _, 5, 5) => self.f_fx55(X),
-            (0x0f, _, 6, 5) => self.f_fx65(X),
-
+            (0xF,_,_,_) => match (d2,d3,d4) {
+                ( _, 0, 7) => self.f_fx07(X),
+                ( _, 0, 0xA) => self.f_fx0a(X),
+                ( _, 1, 5) => self.f_fx15(X),
+                ( _, 1, 8) => self.f_fx18(X),
+                ( _, 1, 0xE) => self.f_fx1e(X),
+                ( _, 2, 9) => self.f_fx29(X),
+                ( _, 3, 3) => self.f_fx33(X),
+                ( _, 5, 5) => self.f_fx55(X),
+                ( _, 6, 5) => self.f_fx65(X),
+            },
             (_,_,_,_) => unimplemented!("X"),
         }
 
@@ -165,7 +168,7 @@ impl CPU {
 
     //jump
     fn f_1nnn(&mut self, NNN:u16){
-        self.PC = nnn;
+        self.PC = NNN;
     }
 
     //call subroutine
