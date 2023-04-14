@@ -1,6 +1,5 @@
 use cpu::*;
 
-mod keyboard;
 mod cpu;
 mod utils;
 

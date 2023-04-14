@@ -1,17 +1,20 @@
 use std::usize;
+use rand::random;
 use crate::utils::FONTSET;
 use crate::utils::Dstatus;
+use crate::utils::Kstatus;
 
 pub struct CPU{
     ram : [u8;4096], 
     vreg : [u8;16],  //V register
     stack : [u16;16],
-    sound_tmr : i8, // soundtimer
-    delay_tmr : i8, // delaytimer
+    sound_tmr : u8, // soundtimer
+    delay_tmr : u8, // delaytimer
     I : u16, // index register
     SP : u16, //stack pointer
     PC : u16, // program counter
     screen : [Dstatus; 64 * 32],
+    keys : [Kstatus; 16]
 }
 
 impl CPU {
@@ -25,7 +28,8 @@ impl CPU {
             I : 0,
             SP : 0,
             PC : 0x200, // from 0x200 to 0x1FF
-            screen : [Dstatus::Off;64*32]
+            screen : [Dstatus::Off;64*32],
+            keys : [Kstatus::Default;16]
         };
         //copy the font into the first 80 bits of memory.
         init_cpu.ram[0..80].copy_from_slice(&FONTSET);
@@ -104,15 +108,16 @@ impl CPU {
                 ( _, _, 3) => self.f_8xy3(X, Y),
                 ( _, _, 4) => self.f_8xy4(X, Y),
                 ( _, _, 5) => self.f_8xy5(X, Y),
-                ( _, _, 6) => self.f_8x06(X),
+                ( _, _, 6) => self.f_8xy6(X),
                 ( _, _, 7) => self.f_8xy7(X, Y),
                 ( _, _, 0xE) => self.f_8x0e(X),
+                _ => unimplemented!("No"),
             },
             (9, _, _, 0) => self.f_9xy0(X, Y),
             (0xA, _, _, _) => self.f_annn(NNN),
             (0xB, _, _, _) => self.f_bnnn(NNN),
             (0xC, _, _, _) => self.f_cxnn(X, NN),
-            (0xD, _, _, _) => self.f_dxyn(X, Y, N),
+            (0xD, _, _, _) => self.f_dxyn(X, Y, NN),
             (0xE, _, 9, 0xE) => self.f_ex9e(X),
             (0xE, _, 0xA, 1) => self.f_exa1(X),
             (0xF,_,_,_) => match (d2,d3,d4) {
@@ -125,8 +130,9 @@ impl CPU {
                 ( _, 3, 3) => self.f_fx33(X),
                 ( _, 5, 5) => self.f_fx55(X),
                 ( _, 6, 5) => self.f_fx65(X),
+                _ => unimplemented!("No"),
             },
-            (_,_,_,_) => unimplemented!("X"),
+            (_,_,_,_) => unimplemented!("No"),
         }
 
     }
@@ -137,7 +143,7 @@ impl CPU {
     }
 
     //return from subroutine
-        fn f_00ee(&mut self){
+    fn f_00ee(&mut self){
         let addr = self.pop();
         self.PC = addr;
     }
@@ -194,6 +200,128 @@ impl CPU {
 
     fn f_8xy2(&mut self, X:usize, Y :usize) {
         self.vreg[X] &= self.vreg[Y];
+    }
+
+    fn f_8xy3(&mut self,X:usize,Y :usize) {
+        self.vreg[X] ^= self.vreg[Y];
+    }
+
+    fn f_8xy4(&mut self, X:usize, Y : usize) {
+        let (result, flag) = self.vreg[X].overflowing_add(self.vreg[Y]);
+        let flag_i = if flag {1} else {0};
+        self.vreg[X] = result;
+        self.vreg[0xF] = flag_i;
+    }
+
+    fn f_8xy5(&mut self,X:usize,Y : usize){
+        let (new_vx, borrow) = self.vreg[X].overflowing_sub(self.vreg[Y]);
+        let new_vf = if borrow {0} else {1};
+        self.vreg[X] = new_vx;
+        self.vreg[0xF] = new_vf;
+    }
+
+    fn f_8xy6(&mut self, X:usize) {
+        self.vreg[0xF] = self.vreg[X] & 1;
+        self.vreg[X] >>= 1;
+    }
+
+    fn f_8xy7(&mut self, X:usize, Y :usize){
+        let (new_vx, borrow) = self.vreg[Y].overflowing_sub(self.vreg[X]);
+        let new_vf = if borrow { 0 } else { 1 };
+        self.vreg[X] = new_vx;
+        self.vreg[0xF] = new_vf;
+    }
+
+    fn f_8x0e(&mut self, X:usize) {
+        self.vreg[0xF] = (self.vreg[X] >> 7) & 1;
+        self.vreg[X] <<= 1; 
+    }
+
+    fn f_9xy0(&mut self, X:usize, Y : usize) {
+        if self.vreg[X] != self.vreg[Y]{
+            self.PC += 2;
+        }
+    }
+
+    fn f_annn(&mut self, NNN: u16) {
+        self.I = NNN;
+    }
+
+    fn f_bnnn(&mut self, NNN: u16) {
+        self.PC = self.vreg[0] as u16 + NNN;
+    }
+
+    fn f_cxnn(&mut self, X:usize, NN: u8) {
+        self.vreg[X] = NN & rand::random::<u8>();
+    }
+
+    fn f_dxyn(&mut self, X:usize, Y :usize, NN: u8) {
+        todo!();
+    }
+
+    fn f_ex9e(&mut self, X:usize) {
+        let is_pressed = self.keys[self.vreg[X] as usize];
+        if is_pressed == Kstatus::Pressed{
+            self.PC += 2;
+        }
+    }
+    
+    fn f_exa1(&mut self, X:usize) {
+        let is_pressed = self.keys[self.vreg[X] as usize];
+        if is_pressed == Kstatus::Default {
+            self.PC += 2;
+        }
+    }
+
+    fn f_fx07(&mut self, X:usize) {
+        self.vreg[X] = self.delay_tmr;
+    }
+
+    //wait for key press
+    fn f_fx0a(&mut self, X:usize) {
+        let mut is_pressed = Kstatus::Default;
+        for i in 0..self.keys.len(){
+        if self.keys[i] == Kstatus::Pressed {
+                self.vreg[X] = (i as u8);
+                is_pressed = Kstatus::Pressed;
+                break;
+            }
+        }
+        if is_pressed == Kstatus::Default {self.PC -= 2;}
+    }
+
+    fn f_fx15(&mut self, X:usize) {
+        self.delay_tmr = self.vreg[X];
+    }
+
+    fn f_fx18(&mut self, X:usize) {
+        self.sound_tmr = self.vreg[X];
+    }
+
+    fn f_fx1e(&mut self, X:usize) {
+        self.I = self.I.wrapping_add(self.vreg[X] as u16);
+    }
+
+    fn f_fx29(&mut self, X:usize) {
+        self.I =(self.vreg[X] as u16)* 5;
+    }
+
+    fn f_fx33(&mut self, X:usize) {
+        self.ram[self.I as usize] = self.vreg[X] / 100;
+        self.ram[(self.I + 1) as usize] = (self.vreg[X] % 100) / 10;
+        self.ram[(self.I + 2) as usize] = self.vreg[X] % 10;
+    }
+
+    fn f_fx55(&mut self, X:usize) {
+        for j in 0..X + 1 {
+            self.ram[self.I as usize + j] = self.vreg[j];
+        }
+    }
+
+    fn f_fx65(&mut self, X:usize) {
+        for j in 0..X + 1 {
+            self.vreg[j] = self.ram[self.I as usize + j];
+        }
     }
 
 
