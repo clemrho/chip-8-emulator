@@ -35,34 +35,20 @@ In CPU class : Using a considerable amount of `matching pattern`, decode and exe
 
 #### 4.Render
 Fonts-loading class : convey the pixel character to the corresponding graphic images.
-May use WASM to interact Rust with `Javascript`.
+May use WASM to interact `Rust` with `Javascript`.
+
+[![ppzFBHf.jpg](https://s1.ax1x.com/2023/04/14/ppzFBHf.jpg)](https://imgse.com/i/ppzFBHf)
 
 - Checkpoint 1: CPU class structure finished, Render finished.
 - Checkpoint 2: Main loop, Rom-loading class, Fonts-loading class, Random Number Generator, Fetch, finish all decode patterns.
 - Final: All finished.
 ### Possible Challenges:
- working with a UI in Rust; decode every pattern correctly, time limit.
+ working with a UI in Rust; decode every pattern correctly, tricky type casting among `usize`/`u8`/`u32`,time limit.
 ## References: 
-*Guide to making a CHIP-8 emulator*
+_most useful:_ The book [An Introduction to Chip-8 Emulation using the Rust Programming Language](aquova.net/chip8/chip8.pdf)
 
-> https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
+[Guide to making a CHIP-8 emulator](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
 
-*Cowgod's Chip-8 Technical Reference v1.0*
+[Cowgod's Chip-8 Technical Reference v1.0](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap)
 
-> http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#memmap
-
-*How to write an emulator (CHIP-8 interpreter)*
-
-> https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/
-
-*CHIP‐8 Technical Reference*
-
->https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference
-
-*Cowgod's Chip-8 Technical Reference v1.0*
-
->http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
-
-*AUSTIN MORLAN's ABOUT CONTACT RSS*
-
->https://austinmorlan.com/posts/chip8_emulator/
+[CHIP‐8 Technical Reference](https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Technical-Reference)
