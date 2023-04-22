@@ -1,5 +1,5 @@
 use std::usize;
-use rand::random;
+use rand;
 use crate::utils::FONTSET;
 use crate::utils::Dstatus;
 use crate::utils::Kstatus;
@@ -36,6 +36,17 @@ impl CPU {
         return init_cpu;
     }
 
+    pub fn get_display(&self)->&[Dstatus]{ &self.screen }
+
+    pub fn keypress(&mut self,kloc:usize,is_pressed:Kstatus){ self.keys[kloc]=is_pressed; }
+
+    pub fn load(&mut self, data: &[u8]) {
+        let start = 0x200 as usize;
+        let end = (0x200 as usize) + data.len();
+        self.ram[start..end].copy_from_slice(data);
+    }
+
+
     pub fn push(&mut self, input: u16) {
         let SP_r = self.SP as usize;
         self.stack[SP_r] = input;
@@ -56,7 +67,7 @@ impl CPU {
         self.execute(opcode);
     }
 
-    pub fn tick_timers(&mut self) {
+    pub fn loop_timers(&mut self) {
         if self.delay_tmr > 0 {
         self.delay_tmr -= 1;
         }
@@ -117,7 +128,7 @@ impl CPU {
             (0xA, _, _, _) => self.f_annn(NNN),
             (0xB, _, _, _) => self.f_bnnn(NNN),
             (0xC, _, _, _) => self.f_cxnn(X, NN),
-            (0xD, _, _, _) => self.f_dxyn(X, Y, NN),
+            (0xD, _, _, _) => self.f_dxyn(X, Y, N),
             (0xE, _, 9, 0xE) => self.f_ex9e(X),
             (0xE, _, 0xA, 1) => self.f_exa1(X),
             (0xF,_,_,_) => match (d2,d3,d4) {
@@ -255,9 +266,45 @@ impl CPU {
         self.vreg[X] = NN & rand::random::<u8>();
     }
 
-    fn f_dxyn(&mut self, X:usize, Y :usize, NN: u8) {
-        todo!();
+    fn f_dxyn(&mut self, X:usize, Y :usize, N: usize) {
+        let x_coord = self.vreg[X] as u16;
+        let y_coord = self.vreg[Y] as u16;
+        // The last digit determines how many rows high our sprite is
+        let num_rows = N;
+        // Keep track if any pixels were flipped
+        let mut flipped = false;
+        // Iterate over each row of our sprite
+        for y_line in 0..num_rows {
+            // Determine which memory address our row's data is stored
+            let addr = self.I + y_line as u16;
+            let pixels = self.ram[addr as usize];
+            // Iterate over each column in our row
+            for x_line in 0..8 {
+                // Use a mask to fetch current pixel's bit. Only flip if a 1
+                if (pixels & (0b1000_0000 >> x_line)) != 0 {
+                    // Sprites should wrap around screen, so apply modulo
+                    let x = (x_coord + x_line) as usize % 64;
+                    let y = (y_coord + y_line as u16) as usize % 32;
+                    // Get our pixel's index for our 1D screen array
+                    let idx = x + 64 * y;
+                    // Check if we're about to flip the pixel and set
+                    let mut b = match self.screen[idx] {
+                        Dstatus::On => true,
+                        Dstatus::Off => false,
+                    };
+                    flipped |= b;
+                    b ^= true;
+                }
+            }
+        }
+        // Populate VF register
+        if flipped {
+            self.vreg[0xF] = 1;
+        } else {
+            self.vreg[0xF] = 0;
+        }
     }
+
 
     fn f_ex9e(&mut self, X:usize) {
         let is_pressed = self.keys[self.vreg[X] as usize];

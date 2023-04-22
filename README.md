@@ -45,7 +45,7 @@ May use WASM to interact `Rust` with `Javascript`.
 ### Possible Challenges:
  working with a UI in Rust; decode every pattern correctly, tricky type casting among `usize`/`u8`/`u32`,time limit.
 ## References: 
-_most useful:_ The book [An Introduction to Chip-8 Emulation using the Rust Programming Language](aquova.net/chip8/chip8.pdf)
+_most useful:_ The book [An Introduction to Chip-8 Emulation using the Rust Programming Language](https://aquova.net/chip8/chip8.pdf)
 
 [Guide to making a CHIP-8 emulator](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
 

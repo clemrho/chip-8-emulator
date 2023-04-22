@@ -18,17 +18,13 @@ pub const FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
-#[derive(Copy)]
-#[derive(Clone)] 
-#[derive(PartialEq)]
+#[derive(Copy,Clone,PartialEq)]
 pub enum Dstatus{
     On,
     Off,
 }
 
-#[derive(Copy)]
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Copy,Clone,PartialEq)]
 pub enum Kstatus{
     Default,
     Pressed,
