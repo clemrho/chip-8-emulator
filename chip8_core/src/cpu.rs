@@ -36,6 +36,19 @@ impl CPU {
         return init_cpu;
     }
 
+    pub fn reset(&mut self) {
+        self.ram = [0;4096];
+        self.vreg = [0;16];
+        self.stack = [0;16];
+        self.sound_tmr = 0;
+        self.delay_tmr = 0;
+        self.I = 0;
+        self.SP = 0;
+        self.PC = 0;
+        self.screen = [Dstatus::Off; 64*32];
+        self.keys = [Kstatus::Default; 16];
+    }
+
     pub fn get_display(&self)->&[Dstatus]{ &self.screen }
 
     pub fn keypress(&mut self,kloc:usize,is_pressed:Kstatus){ self.keys[kloc]=is_pressed; }

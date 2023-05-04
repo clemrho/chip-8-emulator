@@ -1,11 +1,14 @@
-use chip8_core::{*, cpu::CPU, utils::Kstatus};
+use chip8_core::{cpu::CPU, utils::Kstatus, utils::Dstatus};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use web_sys::KeyboardEvent;
+use web_sys:: HtmlCanvasElement;
+use web_sys::CanvasRenderingContext2d;
 
 #[wasm_bindgen]
 pub struct WebCPU{
     chip8 : CPU,
+    ctx: CanvasRenderingContext2d,
 }
 
 
@@ -13,10 +16,22 @@ pub struct WebCPU{
 impl WebCPU {
 
     #[wasm_bindgen(constructor)]
-    pub fn new() -> WebCPU {
-        WebCPU {
-            chip8:CPU::new(),
-        }
+    pub fn new() -> Result<WebCPU, JsValue> {
+        let chip8 = CPU::new();
+
+        let document = web_sys::window().unwrap().document().unwrap();
+        let canvas = document.get_element_by_id("canvas").unwrap();
+        let canvas: HtmlCanvasElement = canvas
+            .dyn_into::<HtmlCanvasElement>()
+            .map_err(|_| ())
+            .unwrap();
+
+        let ctx = canvas.get_context("2d")
+            .unwrap().unwrap()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap();
+
+        Ok(WebCPU{chip8, ctx})
     }
 
     #[wasm_bindgen]
@@ -29,10 +44,10 @@ impl WebCPU {
         self.chip8.loop_timers();
     }
 
-    // #[wasm_bindgen]
-    // pub fn reset(&mut self) {
-    //     self.chip8.reset();
-    // }
+    #[wasm_bindgen]
+    pub fn reset(&mut self) {
+        self.chip8.reset();
+    }
 
     #[wasm_bindgen]
     pub fn keypress(&mut self, evt: KeyboardEvent, b_pressed: bool) {
@@ -78,7 +93,19 @@ impl WebCPU {
 
     #[wasm_bindgen]
     pub fn draw_screen(&mut self, scale: usize) {
-        // TODO
+        let disp = self.chip8.get_display();
+        for i in 0..(64 * 32) {
+            if disp[i] == Dstatus::On {
+                let x = i % 64;
+                let y = i / 64;
+                self.ctx.fill_rect(
+                    (x * scale) as f64,
+                    (y * scale) as f64,
+                    scale as f64,
+                    scale as f64
+                );
+            }
+        }
     }
     
 }

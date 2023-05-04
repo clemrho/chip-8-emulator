@@ -28,7 +28,6 @@ pub enum Dstatus{
 pub enum Kstatus{
     Default,
     Pressed,
-    Abnormal,
 }
 
 // pub struct Keyboard{
